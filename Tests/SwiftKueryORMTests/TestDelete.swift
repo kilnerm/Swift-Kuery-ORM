@@ -14,7 +14,8 @@ class TestDelete: XCTestCase {
     }
 
     struct Person: Model {
-        static var tableName = "People"
+        var modelID: Int64?
+
         var name: String
         var age: Int
     }
@@ -26,11 +27,12 @@ class TestDelete: XCTestCase {
         let connection: TestConnection = createConnection()
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Person.delete(id: 1) { error in
+            let person = Person(modelID: 1, name: "any", age: 0)
+            ModelHandler.delete(instance: person, of: Person.self) { error in
                 XCTAssertNil(error, "Delete Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Delete Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedQuery = "DELETE FROM \"People\" WHERE \"People\".\"id\" = ?1"
+                  let expectedQuery = "DELETE FROM \"Persons\" WHERE \"Persons\".\"modelID\" = ?1"
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertEqual(resultQuery, expectedQuery, "Expected query \(String(describing: expectedQuery)) did not match result query: \(String(describing: resultQuery))")
                 }
@@ -46,11 +48,11 @@ class TestDelete: XCTestCase {
         let connection: TestConnection = createConnection()
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Person.deleteAll { error in
+            ModelHandler.deleteAll(of: Person.self) { error in
                 XCTAssertNil(error, "Delete Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Delete Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedQuery = "DELETE FROM \"People\""
+                  let expectedQuery = "DELETE FROM \"Persons\""
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertEqual(resultQuery, expectedQuery, "Expected query \(String(describing: expectedQuery)) did not match result query: \(String(describing: resultQuery))")
                 }
@@ -72,12 +74,12 @@ class TestDelete: XCTestCase {
         Database.default = Database(single: connection)
         let filter = Filter(name: "Joe", age: 38)
         performTest(asyncTasks: { expectation in
-            Person.deleteAll(matching: filter) { error in
+            ModelHandler.deleteAll(of: Person.self, matching: filter) { error in
                 XCTAssertNil(error, "Delete Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Delete Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedPrefix = "DELETE FROM \"People\" WHERE"
-                  let expectedClauses = [["\"People\".\"name\" = ?1", "\"People\".\"name\" = ?2"], ["\"People\".\"age\" = ?1", "\"People\".\"age\" = ?2"]]
+                  let expectedPrefix = "DELETE FROM \"Persons\" WHERE"
+                  let expectedClauses = [["\"Persons\".\"name\" = ?1", "\"Persons\".\"name\" = ?2"], ["\"Persons\".\"age\" = ?1", "\"Persons\".\"age\" = ?2"]]
                   let expectedOperator = "AND"
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertTrue(resultQuery.hasPrefix(expectedPrefix))

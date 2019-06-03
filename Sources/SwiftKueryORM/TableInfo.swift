@@ -29,11 +29,11 @@ public class TableInfo {
     private var codableMapQueue = DispatchQueue(label: "codableMap.queue", attributes: .concurrent)
 
     /// Get the table for a model
-    func getTable<T: Decodable>(_ idColumn: (name: String, type: SQLDataType.Type, idKeyPathSet: Bool), _ tableName: String, for type: T.Type, with dateEncodingFormat: DateEncodingFormat) throws -> Table {
-        return try getInfo(idColumn, tableName, type, dateEncodingFormat).table
+    func getTable<T: Decodable>(_ tableName: String, for type: T.Type, with dateEncodingFormat: DateEncodingFormat) throws -> Table {
+        return try getInfo(tableName, type, dateEncodingFormat).table
     }
 
-    func getInfo<T: Decodable>(_ idColumn: (name: String, type: SQLDataType.Type, idKeyPathSet: Bool), _ tableName: String, _ type: T.Type, _ dateEncodingFormat: DateEncodingFormat) throws -> (info: TypeInfo, table: Table) {
+    func getInfo<T: Decodable>(_ tableName: String, _ type: T.Type, _ dateEncodingFormat: DateEncodingFormat) throws -> (info: TypeInfo, table: Table) {
         let typeString = "\(type)"
         var result: (TypeInfo, Table)? = nil
         // Read from codableMap when no concurrent write is occurring
@@ -46,7 +46,7 @@ public class TableInfo {
 
         try codableMapQueue.sync(flags: .barrier) {
             let typeInfo = try TypeDecoder.decode(type)
-            result = (info: typeInfo, table: try constructTable(idColumn, tableName, typeInfo, dateEncodingFormat))
+            result = (info: typeInfo, table: try constructTable(tableName, typeInfo, dateEncodingFormat))
             codableMap[typeString] = result
         }
 
@@ -57,9 +57,8 @@ public class TableInfo {
     }
 
     /// Construct the table for a Model
-    func constructTable(_ idColumn: (name: String, type: SQLDataType.Type, idKeyPathSet: Bool), _ tableName: String, _ typeInfo: TypeInfo, _ dateEncodingFormat: DateEncodingFormat) throws -> Table {
+    func constructTable(_ tableName: String, _ typeInfo: TypeInfo, _ dateEncodingFormat: DateEncodingFormat) throws -> Table {
         var columns: [Column] = []
-        var idColumnIsSet = false
         switch typeInfo {
         case .keyed(_, let dict):
             for (key, value) in dict {
@@ -101,14 +100,8 @@ public class TableInfo {
                     throw RequestError(.ormTableCreationError, reason: "Type: \(String(describing: keyedTypeInfo)) is not supported")
                 }
                 if let SQLType = valueType as? SQLDataType.Type {
-                    if key == idColumn.name && !idColumnIsSet {
-                        // If this is an optional id field create an autoincrementing column
-                        if optionalBool && idColumn.idKeyPathSet {
-                            columns.append(Column(key, SQLType, autoIncrement: true, primaryKey: true))
-                        } else {
-                            columns.append(Column(key, SQLType, primaryKey: true, notNull: !optionalBool))
-                        }
-                        idColumnIsSet = true
+                    if key == "modelID" {
+                        columns.append(Column(key, SQLType, autoIncrement: true, primaryKey: true))
                     } else {
                         columns.append(Column(key, SQLType, notNull: !optionalBool))
                     }
@@ -119,9 +112,6 @@ public class TableInfo {
         default:
             //TODO enhance error message
             throw RequestError(.ormTableCreationError, reason: "Can only save a struct to the database")
-        }
-        if !idColumnIsSet {
-            columns.append(Column(idColumn.name, idColumn.type, autoIncrement: true, primaryKey: true))
         }
         return Table(tableName: tableName, columns: columns)
     }

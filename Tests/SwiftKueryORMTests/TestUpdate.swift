@@ -13,7 +13,8 @@ class TestUpdate: XCTestCase {
     }
 
     struct Person: Model {
-        static var tableName = "People"
+        var modelID: Int64?
+
         var name: String?
         var age: Int
     }
@@ -25,13 +26,13 @@ class TestUpdate: XCTestCase {
         let connection: TestConnection = createConnection()
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            let person = Person(name: "Joe", age: 38)
-            person.update(id: 1) { p, error in
+            let person = Person(modelID: 1, name: "Joe", age: 38)
+            ModelHandler.update(instance: person, of: Person.self) { p, error in
                 XCTAssertNil(error, "Update Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Update Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedPrefix = "UPDATE \"People\" SET"
-                  let expectedSuffix = "WHERE \"People\".\"id\" = ?3"
+                  let expectedPrefix = "UPDATE \"Persons\" SET"
+                  let expectedSuffix = "WHERE \"Persons\".\"modelID\" = ?3"
                   let expectedUpdates = [["\"name\" = ?1", "\"name\" = ?2"], ["\"age\" = ?1", "\"age\" = ?2"]]
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertTrue(resultQuery.hasPrefix(expectedPrefix))
@@ -61,13 +62,13 @@ class TestUpdate: XCTestCase {
         let connection: TestConnection = createConnection()
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            let person = Person(name: nil, age: 38)
-            person.update(id: 1) { p, error in
+            let person = Person(modelID: 1, name: nil, age: 38)
+            ModelHandler.update(instance: person, of: Person.self) { p, error in
                 XCTAssertNil(error, "Update Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Update Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedPrefix = "UPDATE \"People\" SET"
-                  let expectedSuffix = "WHERE \"People\".\"id\" = ?3"
+                  let expectedPrefix = "UPDATE \"Persons\" SET"
+                  let expectedSuffix = "WHERE \"Persons\".\"modelID\" = ?3"
                   let expectedUpdates = [["\"name\" = ?1", "\"name\" = ?2"], ["\"age\" = ?1", "\"age\" = ?2"]]
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertTrue(resultQuery.hasPrefix(expectedPrefix))

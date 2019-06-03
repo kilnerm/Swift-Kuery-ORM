@@ -14,7 +14,8 @@ class TestFind: XCTestCase {
     }
 
     struct Person: Model {
-        static var tableName = "People"
+        var modelID: Int64?
+
         var name: String
         var age: Int
     }
@@ -27,11 +28,11 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneRow)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Person.find(id: 1) { p, error in
+            ModelHandler.find(instanceOf: Person.self, withID: 1) { p, error in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedQuery = "SELECT * FROM \"People\" WHERE \"People\".\"id\" = ?1"
+                  let expectedQuery = "SELECT * FROM \"Persons\" WHERE \"Persons\".\"modelID\" = ?1"
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertEqual(resultQuery, expectedQuery, "Find Failed: Invalid query")
                 }
@@ -53,11 +54,11 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneRow)
         let db = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Person.find(id: 1, using: db) { p, error in
+            ModelHandler.find(instanceOf: Person.self, withID: 1, using: db) { p, error in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
-                    let expectedQuery = "SELECT * FROM \"People\" WHERE \"People\".\"id\" = ?1"
+                    let expectedQuery = "SELECT * FROM \"Persons\" WHERE \"Persons\".\"modelID\" = ?1"
                     let resultQuery = connection.descriptionOf(query: query)
                     XCTAssertEqual(resultQuery, expectedQuery, "Find Failed: Invalid query")
                 }
@@ -79,11 +80,11 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnThreeRows)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Person.findAll { array, error in
+            ModelHandler.findAll(of: Person.self) { array, error in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedQuery = "SELECT * FROM \"People\""
+                  let expectedQuery = "SELECT * FROM \"Persons\""
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertEqual(resultQuery, expectedQuery, "Find Failed: Invalid query")
                 }
@@ -110,12 +111,12 @@ class TestFind: XCTestCase {
         Database.default = Database(single: connection)
         let filter = Filter(name: "Joe", age: 38)
         performTest(asyncTasks: { expectation in
-            Person.findAll(matching: filter) { array, error in
+            ModelHandler.findAll(of: Person.self, matching: filter) { array, error in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
-                  let expectedPrefix = "SELECT * FROM \"People\" WHERE"
-                  let expectedClauses = [["\"People\".\"name\" = ?1", "\"People\".\"name\" = ?2"], ["\"People\".\"age\" = ?1", "\"People\".\"age\" = ?2"]]
+                  let expectedPrefix = "SELECT * FROM \"Persons\" WHERE"
+                  let expectedClauses = [["\"Persons\".\"name\" = ?1", "\"Persons\".\"name\" = ?2"], ["\"Persons\".\"age\" = ?1", "\"Persons\".\"age\" = ?2"]]
                   let expectedOperator = "AND"
                   let resultQuery = connection.descriptionOf(query: query)
                   XCTAssertTrue(resultQuery.hasPrefix(expectedPrefix))
@@ -141,7 +142,8 @@ class TestFind: XCTestCase {
     }
 
     struct Order: Model {
-        static var tableName = "Orders"
+        var modelID: Int64?
+
         var item: Int
         var deliveryAddress: String
     }
@@ -153,7 +155,7 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneOrder)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            Order.findAll { array, error in
+            ModelHandler.findAll(of: Order.self) { array, error in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {

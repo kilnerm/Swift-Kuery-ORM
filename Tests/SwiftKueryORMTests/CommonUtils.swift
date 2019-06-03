@@ -151,10 +151,10 @@ class TestConnection: Connection {
 class TestResultFetcher: ResultFetcher {
     let numberOfResults: Int
     let returnRows: Bool
-    let rows = [[1, "Joe", Int32(38)], [2, "Adam", Int32(28)], [3, "Chris", Int32(36)]]
-    let orders = [[Int32(32), "first address"]]
-    let rowTitles = ["id", "name", "age"]
-    let orderTitles = ["item", "deliveryAddress"]
+    let rows = [[Int64(1), "Joe", Int32(38)], [Int64(2), "Adam", Int32(28)], [Int64(3), "Chris", Int32(36)]]
+    let orders = [[Int64(1), Int32(32), "first address"]]
+    let rowTitles = ["modelID", "name", "age"]
+    let orderTitles = ["modelID", "item", "deliveryAddress"]
     var fetched = 0
 
     init(numberOfRows: Int) {
