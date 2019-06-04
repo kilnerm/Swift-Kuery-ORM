@@ -15,7 +15,7 @@ public class ModelHandler {
     // Table management functions
 
     @discardableResult
-    static func createTableSync<M: Model>(for type: M.Type, using db: Database? = nil) throws -> Bool {
+    public static func createTableSync<M: Model>(for type: M.Type, using db: Database? = nil) throws -> Bool {
         var result: Bool?
         var error: RequestError?
         let semaphore = DispatchSemaphore(value: 0)
@@ -36,7 +36,7 @@ public class ModelHandler {
         return resultUnwrapped
     }
 
-    static func createTable<M: Model>(for type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (Bool?, RequestError?) -> Void) {
+    public static func createTable<M: Model>(for type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (Bool?, RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: M.self)
@@ -65,7 +65,7 @@ public class ModelHandler {
     }
 
     @discardableResult
-    static func dropTableSync<M: Model>(for type: M.Type, using db: Database? = nil) throws -> Bool {
+    public static func dropTableSync<M: Model>(for type: M.Type, using db: Database? = nil) throws -> Bool {
         var result: Bool?
         var error: RequestError?
         let semaphore = DispatchSemaphore(value: 0)
@@ -86,7 +86,7 @@ public class ModelHandler {
         return resultUnwrapped
     }
 
-    static func dropTable<M: Model>(for type: M.Type, using db : Database? = nil, _ onCompletion: @escaping (Bool?, RequestError?) -> Void) {
+    public static func dropTable<M: Model>(for type: M.Type, using db : Database? = nil, _ onCompletion: @escaping (Bool?, RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: M.self)
@@ -116,7 +116,7 @@ public class ModelHandler {
 
     // Model interaction functions
 
-    static func save<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func save<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         var values: [String : Any]
         do {
@@ -134,7 +134,7 @@ public class ModelHandler {
         executeQuery(for: instance, query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    static func update<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func update<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         var values: [String: Any]
         do {
@@ -158,7 +158,7 @@ public class ModelHandler {
         executeQuery(for: instance, query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    static func delete<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
+    public static func delete<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -177,7 +177,7 @@ public class ModelHandler {
         executeQuery(query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    static func deleteAll<M: Model>(of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
+    public static func deleteAll<M: Model>(of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -190,7 +190,7 @@ public class ModelHandler {
         executeQuery(query: query, using: db, onCompletion)
     }
 
-    static func deleteAll<Q: QueryParams, M: Model>(of type: M.Type, using db: Database? = nil, matching queryParams: Q?, _ onCompletion: @escaping (RequestError?) -> Void) {
+    public static func deleteAll<Q: QueryParams, M: Model>(of type: M.Type, using db: Database? = nil, matching queryParams: Q?, _ onCompletion: @escaping (RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -224,7 +224,7 @@ public class ModelHandler {
         executeQuery(query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    static func find<M: Model>(instanceOf type: M.Type, withID id: Int64, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func find<M: Model>(instanceOf type: M.Type, withID id: Int64, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -243,7 +243,7 @@ public class ModelHandler {
         executeQuery(query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    static func findAll<M: Model>(of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
+    public static func findAll<M: Model>(of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -256,7 +256,7 @@ public class ModelHandler {
         executeQuery(query: query, using: db, onCompletion)
     }
 
-    static func findAll<Q: QueryParams, M: Model>(of type: M.Type, using db: Database? = nil, matching queryParams: Q? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
+    public static func findAll<Q: QueryParams, M: Model>(of type: M.Type, using db: Database? = nil, matching queryParams: Q? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
         var table: Table
         do {
             table = try getTable(for: type)
@@ -334,7 +334,7 @@ public class ModelHandler {
         }
     }
 
-    static func executeQuery(query: Query, parameters: [Any?]? = nil, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void ) {
+    public static func executeQuery(query: Query, parameters: [Any?]? = nil, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void ) {
         executeTask(using: db) { connection, error in
             guard let connection = connection else {
                 guard let error = error else {
@@ -362,7 +362,7 @@ public class ModelHandler {
         }
     }
 
-    static func executeQuery<M: Model>(query: Query, parameters: [Any?], using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void ) {
+    public static func executeQuery<M: Model>(query: Query, parameters: [Any?], using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void ) {
         executeTask(using: db) { connection, error in
             guard let connection = connection else {
                 guard let error = error else {
@@ -402,7 +402,7 @@ public class ModelHandler {
         }
     }
 
-    static func executeQuery<M: Model>(query: Query, parameters: [Any?]? = nil, using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?)-> Void ) {
+    public static func executeQuery<M: Model>(query: Query, parameters: [Any?]? = nil, using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?)-> Void ) {
         executeTask(using: db) { connection, error in
             guard let connection = connection else {
                 guard let error = error else {
@@ -485,7 +485,7 @@ public class ModelHandler {
         database.executeTask(task: task)
     }
 
-    static func getTableName<M: Model>(for type: M.Type) -> String {
+    public static func getTableName<M: Model>(for type: M.Type) -> String {
         var tableName = String(describing: type)
         if tableName.last != "s" {
             tableName += "s"
@@ -493,7 +493,7 @@ public class ModelHandler {
         return tableName
     }
 
-    static func getTable<M: Model>(for type: M.Type) throws -> Table {
+    public static func getTable<M: Model>(for type: M.Type) throws -> Table {
         return try Database.tableInfo.getTable(getTableName(for: M.self), for: M.self, with: M.dateEncodingFormat)
     }
 
