@@ -27,7 +27,7 @@ class TestId: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: 1, name: "Joe", age: 38)
-            ModelHandler.update(instance: person, of: Person.self) { p, error in
+            ModelHandler.update(instance: person) { p, error in
                 XCTAssertNil(error, "Update Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Update Failed: Query is nil")
                 if let query = connection.query {
@@ -63,7 +63,7 @@ class TestId: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: 1, name: "Joe", age: 38)
-            ModelHandler.delete(instance: person, of: Person.self) { error in
+            ModelHandler.delete(instance: person) { error in
                 XCTAssertNil(error, "Delete Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Delete Failed: Query is nil")
                 if let query = connection.query {
@@ -88,7 +88,7 @@ class TestId: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let myIPerson = IdentifiedPerson(modelID: nil, name: "Joe", age: 38)
-            ModelHandler.save(instance: myIPerson, of: IdentifiedPerson.self) { identifiedPerson, error in
+            ModelHandler.save(instance: myIPerson) { identifiedPerson, error in
                 XCTAssertNil(error, "Error on IdentifiedPerson.save")
                 if let newPerson = identifiedPerson {
                     XCTAssertEqual(newPerson.modelID, 1, "Id not stored on IdentifiedPerson")

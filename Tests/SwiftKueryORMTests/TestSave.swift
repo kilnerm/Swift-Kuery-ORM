@@ -58,7 +58,7 @@ class TestSave: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: nil, name: "Joe", age: 38)
-            ModelHandler.save(instance: person, of: Person.self) { p, error in
+            ModelHandler.save(instance: person) { p, error in
                 XCTAssertNil(error, "Save Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Save Failed: Query is nil")
                 if let query = connection.query {
@@ -89,7 +89,7 @@ class TestSave: XCTestCase {
         let db = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: nil, name: "Joe", age: 38)
-            ModelHandler.save(instance: person, of: Person.self, using: db) { p, error in
+            ModelHandler.save(instance: person, using: db) { p, error in
                 XCTAssertNil(error, "Save Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Save Failed: Query is nil")
                 if let query = connection.query {

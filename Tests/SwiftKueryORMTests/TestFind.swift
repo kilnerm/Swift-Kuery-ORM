@@ -28,7 +28,7 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneRow)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            ModelHandler.find(instanceOf: Person.self, withID: 1) { p, error in
+            ModelHandler.find(instance: 1) { (p: Person?, error) in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
@@ -54,7 +54,7 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneRow)
         let db = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            ModelHandler.find(instanceOf: Person.self, withID: 1, using: db) { p, error in
+            ModelHandler.find(instance: 1, using: db) { (p: Person?, error) in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
@@ -80,7 +80,7 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnThreeRows)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            ModelHandler.findAll(of: Person.self) { array, error in
+            ModelHandler.findAll() { (array: [Person]?, error) in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
@@ -111,7 +111,7 @@ class TestFind: XCTestCase {
         Database.default = Database(single: connection)
         let filter = Filter(name: "Joe", age: 38)
         performTest(asyncTasks: { expectation in
-            ModelHandler.findAll(of: Person.self, matching: filter) { array, error in
+            ModelHandler.findAll(matching: filter) { (array: [Person]?, error) in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {
@@ -155,7 +155,7 @@ class TestFind: XCTestCase {
         let connection: TestConnection = createConnection(.returnOneOrder)
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
-            ModelHandler.findAll(of: Order.self) { array, error in
+            ModelHandler.findAll() { (array: [Order]?, error) in
                 XCTAssertNil(error, "Find Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Find Failed: Query is nil")
                 if let query = connection.query {

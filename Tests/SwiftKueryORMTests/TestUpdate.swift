@@ -27,7 +27,7 @@ class TestUpdate: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: 1, name: "Joe", age: 38)
-            ModelHandler.update(instance: person, of: Person.self) { p, error in
+            ModelHandler.update(instance: person) { p, error in
                 XCTAssertNil(error, "Update Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Update Failed: Query is nil")
                 if let query = connection.query {
@@ -63,7 +63,7 @@ class TestUpdate: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: 1, name: nil, age: 38)
-            ModelHandler.update(instance: person, of: Person.self) { p, error in
+            ModelHandler.update(instance: person) { p, error in
                 XCTAssertNil(error, "Update Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Update Failed: Query is nil")
                 if let query = connection.query {

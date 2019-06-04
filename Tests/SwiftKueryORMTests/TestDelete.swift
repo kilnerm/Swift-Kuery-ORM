@@ -28,7 +28,7 @@ class TestDelete: XCTestCase {
         Database.default = Database(single: connection)
         performTest(asyncTasks: { expectation in
             let person = Person(modelID: 1, name: "any", age: 0)
-            ModelHandler.delete(instance: person, of: Person.self) { error in
+            ModelHandler.delete(instance: person) { error in
                 XCTAssertNil(error, "Delete Failed: \(String(describing: error))")
                 XCTAssertNotNil(connection.query, "Delete Failed: Query is nil")
                 if let query = connection.query {

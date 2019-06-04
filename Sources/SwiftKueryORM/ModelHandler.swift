@@ -116,11 +116,11 @@ public class ModelHandler {
 
     // Model interaction functions
 
-    public static func save<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func save<M: Model>(instance: M, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         var values: [String : Any]
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
             values = try DatabaseEncoder().encode(instance, dateEncodingStrategy: M.dateEncodingFormat)
         } catch let error {
             onCompletion(nil, convertError(error))
@@ -130,15 +130,15 @@ public class ModelHandler {
         let columns = table.columns.filter({values[$0.name] != nil})
         let parameters: [Any?] = columns.map({values[$0.name]!})
         let parameterPlaceHolders: [Parameter] = parameters.map {_ in return Parameter()}
-        let query = Insert(into: table, columns: columns, values: parameterPlaceHolders)
+        let query = Insert(into: table, columns: columns, values: parameterPlaceHolders, returnID: true)
         executeQuery(for: instance, query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    public static func update<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func update<M: Model>(instance: M, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         var values: [String: Any]
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
             values = try DatabaseEncoder().encode(instance, dateEncodingStrategy: M.dateEncodingFormat)
         } catch let error {
             onCompletion(nil, convertError(error))
@@ -158,10 +158,10 @@ public class ModelHandler {
         executeQuery(for: instance, query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    public static func delete<M: Model>(instance: M, of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
+    public static func delete<M: Model>(instance: M, using db: Database? = nil, _ onCompletion: @escaping (RequestError?) -> Void) {
         var table: Table
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
         } catch let error {
             onCompletion(convertError(error))
             return
@@ -224,10 +224,10 @@ public class ModelHandler {
         executeQuery(query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    public static func find<M: Model>(instanceOf type: M.Type, withID id: Int64, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
+    public static func find<M: Model>(instance id: Int64, using db: Database? = nil, _ onCompletion: @escaping (M?, RequestError?) -> Void) {
         var table: Table
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
         } catch let error {
             onCompletion(nil, convertError(error))
             return
@@ -243,10 +243,10 @@ public class ModelHandler {
         executeQuery(query: query, parameters: parameters, using: db, onCompletion)
     }
 
-    public static func findAll<M: Model>(of type: M.Type, using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
+    public static func findAll<M: Model>(using db: Database? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
         var table: Table
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
         } catch let error {
             onCompletion(nil, convertError(error))
             return
@@ -256,10 +256,10 @@ public class ModelHandler {
         executeQuery(query: query, using: db, onCompletion)
     }
 
-    public static func findAll<Q: QueryParams, M: Model>(of type: M.Type, using db: Database? = nil, matching queryParams: Q? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
+    public static func findAll<Q: QueryParams, M: Model>(using db: Database? = nil, matching queryParams: Q? = nil, _ onCompletion: @escaping ([M]?, RequestError?) -> Void) {
         var table: Table
         do {
-            table = try getTable(for: type)
+            table = try getTable(for: M.self)
         } catch let error {
             onCompletion(nil, convertError(error))
             return
