@@ -22,6 +22,9 @@ import TypeDecoder
 import Dispatch
 #endif
 
+public enum NestedType {
+    case model(type: String)
+}
 /// Class caching the tables for the models of the application
 
 public class TableInfo {
@@ -29,11 +32,11 @@ public class TableInfo {
     private var codableMapQueue = DispatchQueue(label: "codableMap.queue", attributes: .concurrent)
 
     /// Get the table for a model
-    func getTable<T: Decodable>(_ tableName: String, for type: T.Type, with dateEncodingFormat: DateEncodingFormat) throws -> Table {
+    func getTable<M: Model>(_ tableName: String, for type: M.Type, with dateEncodingFormat: DateEncodingFormat) throws -> Table {
         return try getInfo(tableName, type, dateEncodingFormat).table
     }
 
-    func getInfo<T: Decodable>(_ tableName: String, _ type: T.Type, _ dateEncodingFormat: DateEncodingFormat) throws -> (info: TypeInfo, table: Table) {
+    func getInfo<M: Model>(_ tableName: String, _ type: M.Type, _ dateEncodingFormat: DateEncodingFormat) throws -> (info: TypeInfo, table: Table) {
         let typeString = "\(type)"
         var result: (TypeInfo, Table)? = nil
         // Read from codableMap when no concurrent write is occurring
@@ -59,6 +62,7 @@ public class TableInfo {
     /// Construct the table for a Model
     func constructTable(_ tableName: String, _ typeInfo: TypeInfo, _ dateEncodingFormat: DateEncodingFormat) throws -> Table {
         var columns: [Column] = []
+        var foreignKeys: [(Column, Column)] = []
         switch typeInfo {
         case .keyed(_, let dict):
             for (key, value) in dict {
@@ -92,8 +96,13 @@ public class TableInfo {
                     valueType = String.self
                 case .keyed(_ as URL.Type, _):
                     valueType = String.self
-                case .keyed:
-                    throw RequestError(.ormTableCreationError, reason: "Nested structs or dictionaries are not supported")
+                case .keyed(let nestedType, _):
+                    if let _ = nestedType as? Model.Type {
+                        let nestedName = String(describing: nestedType)
+                        valueType = NestedType.model(type: nestedName)
+                    } else {
+                        throw RequestError(.ormTableCreationError, reason: "Nested structs or dictionaries are not supported")
+                    }
                 case .unkeyed:
                     throw RequestError(.ormTableCreationError, reason: "Arrays or sets are not supported")
                 default:
@@ -105,6 +114,17 @@ public class TableInfo {
                     } else {
                         columns.append(Column(key, SQLType, notNull: !optionalBool))
                     }
+                } else if let nestedModel = valueType as? NestedType, case let NestedType.model(typeName) = nestedModel {
+                    guard let keyedInfo = codableMap["\(typeName)"] else {
+                        throw RequestError(.ormTableCreationError, reason: "Please create table for \(typeName) Model")
+                    }
+                    let nestedTable = keyedInfo.table
+                    let newColumn = Column(key, Int64.self)
+                    guard let referencedColumn = nestedTable.columns.first(where: { $0.name == "modelID" }) else {
+                        throw RequestError(.ormTableCreationError, reason: "Could not find ID column for \(nestedTable.nameInQuery)")
+                    }
+                    foreignKeys.append((newColumn, referencedColumn))
+                    columns.append(newColumn)
                 } else {
                     throw RequestError(.ormTableCreationError, reason: "Type: \(String(describing: valueType)) of Key: \(String(describing: key)) is not a SQLDataType")
                 }
@@ -113,6 +133,10 @@ public class TableInfo {
             //TODO enhance error message
             throw RequestError(.ormTableCreationError, reason: "Can only save a struct to the database")
         }
-        return Table(tableName: tableName, columns: columns)
+        var table = Table(tableName: tableName, columns: columns)
+        for key in foreignKeys {
+            table = table.foreignKey(key.0, references: key.1)
+        }
+        return table
     }
 }
